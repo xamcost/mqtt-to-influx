@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mqtt-to-influx-log-data
+  namespace: mqtt-to-influx
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-nvme-retain
+  resources:
+    requests:
+      storage: 2Gi
+---
