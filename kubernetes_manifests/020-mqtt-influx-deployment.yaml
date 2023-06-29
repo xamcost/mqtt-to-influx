@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mqtt-to-influx
+  namespace: mqtt-to-influx
+  labels:
+    app: mqtt-to-influx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mqtt-to-influx
+  template:
+    metadata:
+      labels:
+        app: mqtt-to-influx
+    spec:
+      imagePullSecrets:
+      - name: xamcost-ghcr-registry
+      containers:
+      - name: mqtt-to-influx
+        image: ghcr.io/xamcost/mqtt-to-influx:latest
+        imagePullPolicy: Always                 
+        env:
+        - name: BROKER_HOST
+          value: ${MQTT_BROKER_HOST}
+        - name: BROKER_PORT
+          value: "${MQTT_BROKER_PORT}"
+        - name: INFLUXDB_V2_URL
+          value: ${INFLUXDB_URL}
+        envFrom:
+        - secretRef:
+            name: mqtt-to-influx-secret
+            optional: false
+        volumeMounts:
+        - name: mqtt-to-influx-log-data
+          mountPath: /logs
+        stdin: true
+        tty: true
+      volumes:
+        - name: mqtt-to-influx-log-data
+          persistentVolumeClaim:
+            claimName: mqtt-to-influx-log-data  
+      nodeSelector:
+        kubernetes.io/hostname: ${MOSQUITTO_NODE}
+      restartPolicy: Always
+---
