@@ -1,5 +1,5 @@
 # 
-FROM python:3.10.6-slim-buster
+FROM python@sha256:71afed5910cdec96814776079578269e194088a06a64952daebf0d745c1f105d
 
 #
 ENV BROKER_HOST="http://mosquitto.mosquitto.svc.cluster.local"
