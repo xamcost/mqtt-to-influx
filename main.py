@@ -43,11 +43,33 @@ BROKER_PWD = os.getenv("BROKER_PWD")
 
 # MQTT Topics to subscribe to
 BALCONY_TOPIC = "enviro/outdoor-balcony"
-TOPICS = [BALCONY_TOPIC]
+HS_SHTC3_TOPIC = "home/server/shtc3"
+TOPICS = [BALCONY_TOPIC, HS_SHTC3_TOPIC]
 
 # InfluxDB parameters
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
 INFLUX_CLIENT = None
+
+
+def shift_timezone(timestamp, tz):
+    """
+    Shifts the timezone of a given string formatted UTC datetime.
+
+    Parameters
+    ----------
+    timestamp : str
+        The datetime to shift.
+    tz : str
+        The timezone to shift to.
+
+    Returns
+    -------
+    datetime.datetime
+        The shifted datetime object.
+    """
+    dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+    dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.astimezone(ZoneInfo(tz))
 
 
 def on_connect(client, userdata, flags, rc):
@@ -111,12 +133,11 @@ def on_message(client, userdata, message):
     _logger.info(f"Message content: {content}")
 
     rec = None
+    dt = shift_timezone(content["timestamp"], "Europe/Paris")
     if topic == BALCONY_TOPIC:
-        dt = datetime.datetime.strptime(content["timestamp"], "%Y-%m-%d %H:%M:%S")
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
         rec = (
             Point("environment")
-            .time(dt.astimezone(ZoneInfo("Europe/Paris")))
+            .time(dt)
             .tag("location", "balcony")
             .field("pm1", float(content["pm1"]))
             .field("pm2_5", float(content["pm2_5"]))
@@ -125,6 +146,14 @@ def on_message(client, userdata, message):
             .field("humidity", float(content["humidity"]))
             .field("pressure", float(content["pressure"]))
             .field("noise", float(content["noise"]))
+        )
+    elif topic == HS_SHTC3_TOPIC:
+        rec = (
+            Point("environment")
+            .time(dt)
+            .tag("location", "home-server")
+            .field("temperature", float(content["temperature"]))
+            .field("humidity", float(content["humidity"]))
         )
 
     if rec is not None:
