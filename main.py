@@ -42,9 +42,14 @@ BROKER_USER = os.getenv("BROKER_USER")
 BROKER_PWD = os.getenv("BROKER_PWD")
 
 # MQTT Topics to subscribe to
-BALCONY_TOPIC = "enviro/outdoor-balcony"
+# BALCONY_TOPIC = "enviro/outdoor-balcony"
+KITCHEN_TOPIC = "enviro/home-kitchen"
 HS_SHTC3_TOPIC = "home/server/shtc3"
-TOPICS = [BALCONY_TOPIC, HS_SHTC3_TOPIC]
+TOPICS = [
+    # BALCONY_TOPIC,
+    KITCHEN_TOPIC,
+    HS_SHTC3_TOPIC,
+]
 
 # InfluxDB parameters
 INFLUX_BUCKET = os.getenv("INFLUX_BUCKET")
@@ -134,11 +139,13 @@ def on_message(client, userdata, message):
 
     rec = None
     dt = shift_timezone(content["timestamp"], "Europe/Paris")
-    if topic == BALCONY_TOPIC:
+    # if topic == BALCONY_TOPIC:
+    if topic == KITCHEN_TOPIC:
         rec = (
             Point("environment")
             .time(dt)
-            .tag("location", "balcony")
+            # .tag("location", "balcony")
+            .tag("location", "kitchen")
             .field("pm1", float(content["pm1"]))
             .field("pm2_5", float(content["pm2_5"]))
             .field("pm10", float(content["pm10"]))
