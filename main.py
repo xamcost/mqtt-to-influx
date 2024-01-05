@@ -62,7 +62,7 @@ def shift_timezone(timestamp, tz):
 
     Parameters
     ----------
-    timestamp : str
+    timestamp : datetime.datetime
         The datetime to shift.
     tz : str
         The timezone to shift to.
@@ -72,8 +72,7 @@ def shift_timezone(timestamp, tz):
     datetime.datetime
         The shifted datetime object.
     """
-    dt = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-    dt = dt.replace(tzinfo=datetime.timezone.utc)
+    dt = timestamp.replace(tzinfo=datetime.timezone.utc)
     return dt.astimezone(ZoneInfo(tz))
 
 
@@ -138,23 +137,27 @@ def on_message(client, userdata, message):
     _logger.info(f"Message content: {content}")
 
     rec = None
-    dt = shift_timezone(content["timestamp"], "Europe/Paris")
     # if topic == BALCONY_TOPIC:
     if topic == KITCHEN_TOPIC:
+        dt = datetime.datetime.strptime(content["timestamp"], "%Y-%m-%dT%H:%M:%SZ")
+        dt = shift_timezone(dt, "Europe/Paris")
+        readings = content["readings"]
         rec = (
             Point("environment")
             .time(dt)
             # .tag("location", "balcony")
             .tag("location", "kitchen")
-            .field("pm1", float(content["pm1"]))
-            .field("pm2_5", float(content["pm2_5"]))
-            .field("pm10", float(content["pm10"]))
-            .field("temperature", float(content["temperature"]))
-            .field("humidity", float(content["humidity"]))
-            .field("pressure", float(content["pressure"]))
-            .field("noise", float(content["noise"]))
+            .field("pm1", float(readings["pm1"]))
+            .field("pm2_5", float(readings["pm2_5"]))
+            .field("pm10", float(readings["pm10"]))
+            .field("temperature", float(readings["temperature"]))
+            .field("humidity", float(readings["humidity"]))
+            .field("pressure", float(readings["pressure"]))
+            .field("noise", float(readings["noise"]))
         )
     elif topic == HS_SHTC3_TOPIC:
+        dt = datetime.datetime.strptime(content["timestamp"], "%Y-%m-%d %H:%M:%S")
+        dt = shift_timezone(dt, "Europe/Paris")
         rec = (
             Point("environment")
             .time(dt)
