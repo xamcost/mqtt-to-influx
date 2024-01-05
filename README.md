@@ -18,7 +18,11 @@ push it to your own registry.
 
 Just for the sake of completeness, I use this app in my home server, which is a
 Kubernetes cluster of Raspberry Pis, to gather data from sensors at home
-(temperature, humidity, ...). At time of writing, the `on_message` function
-is designed to listen messages published by an
-[Enviro Urban board](https://shop.pimoroni.com/products/enviro-urban?variant=40056508219475).
-With time, I will add more sensors, and update this function accordingly.
+(temperature, humidity, ...).
+
+The MQTT client `on_message` function is designed to listen messages published by
+two sources:
+- an [Enviro Urban board](https://shop.pimoroni.com/products/enviro-urban?variant=40056508219475).
+- a [SHTC3 temperature and humidity sensor](https://www.adafruit.com/product/4636).
+
+More sensors may be added in the future.
